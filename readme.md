@@ -11,6 +11,25 @@
 
 知其然，知其所以然，加油
 
+## 运行项目
+
+```sh
+# clone the project
+git clone git@github.com:FBmm/my-vue.git
+
+# enter the project directory
+cd vue-admin
+
+# install dependency
+npm install
+
+# develop
+npm run serve # rollup内置环境启动项目
+
+# build
+npm run build # 打包源码
+```
+
 ## 目录结构
 
 ```sh
