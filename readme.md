@@ -18,7 +18,7 @@
 git clone git@github.com:FBmm/my-vue.git
 
 # enter the project directory
-cd vue-admin
+cd my-vue
 
 # install dependency
 npm install
