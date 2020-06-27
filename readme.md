@@ -24,3 +24,50 @@
 ├── rollup.config.js                # rollup.js配置
 ├── readme.md                       # readme
 ```
+
+## vue源码解析
+
+### vue初始化
+
+初始化相关代码
+
+```js
+  ...
+  function Vue (options) {
+    if (process.env.NODE_ENV !== 'production' &&
+      !(this instanceof Vue)
+    ) {
+      warn('Vue is a constructor and should be called with the `new` keyword')
+    }
+    this._init(options)
+  }
+
+  initMixin(Vue)
+  stateMixin(Vue)
+  eventsMixin(Vue)
+  lifecycleMixin(Vue)
+  renderMixin(Vue)
+  ...
+```
+
+#### 声明Vue构造函数，构造函数做的两件事
+
+1. 非生产环境并且不是通过new关键字调用Vue构造函数，则提示警告信息
+
+疑问：this instanceof Vue 如何判断函数是new关键字调用？
+
+  - 首先，我们要知道this在function函数（非箭头函数）中的指向问题，大致的原则是谁调用指向谁，如果把function函数当做构造函数通过new创建实例，则指向实例
+  - 所以，如果此处是普通调用Vue()，则this应该指向的是window对象，所以window对象的构造函数应该是Window，this instanceof Vue // false
+  - 如果通过new调用，则this指向Vue实例，所以 this instanceof Vue // true
+
+2. 调用挂载在Vue构造函数上的_init方法
+
+疑问：_init是何时挂载到Vue构造函数上的？
+
+疑问：_init方法做了什么事？
+
+### 响应式系统
+
+#### 响应式对象
+
+### 模板编译
