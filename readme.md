@@ -17,6 +17,9 @@
 ├── public                          # 静态资源
 │   │── index.html                  # html模板文件
 ├── src                             # vue源码
+│   │── index.js                    # vue入口函数
+│   │── init.js                     # vue初始化函数init
+│   │── state.js                    # html模板文件
 ├── .babelrc                        # babel-loader配置
 ├── .gitignore                      # git版本管理忽略配置
 ├── package-lock.json               # 项目配置、脚本命令、模块依赖管理
