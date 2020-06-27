@@ -1,5 +1,6 @@
 import { initState } from './state'
 
+// vue初始化函数
 export function initMixin(Vue) {
     Vue.prototype._init = function (options) {
         console.log('init')

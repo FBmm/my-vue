@@ -1,5 +1,6 @@
 import { observe } from './observer/index.js'
 
+// 初始化props,methods,data,computed,watch
 export function initState(vm) {
     const opts = vm.$options;
     console.log(opts)
