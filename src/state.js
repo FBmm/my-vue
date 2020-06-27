@@ -3,7 +3,6 @@ import { observe } from './observer/index.js'
 // 初始化props,methods,data,computed,watch
 export function initState(vm) {
     const opts = vm.$options;
-    console.log(opts)
     // vue数据来源 属性、方法、数据、计算属性、watch
     if (opts.props) {
         initProps(vm)
@@ -31,6 +30,7 @@ function initData(vm) {
     // data 属性挂载到 vm._data
     data = vm._data = typeof data === 'function' ? data.call(vm) : data
     console.log('初始化数据', vm)
+    console.log('data', data)
 
     // 对象劫持 用户改变了数据 通知修改视图
     // MVVM模式，数据变化可以驱动视图变化

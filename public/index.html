@@ -17,7 +17,13 @@
                     pageInfo: {
                         page: 15,
                     },
-                    list: [],
+                    list: [{
+                        id: 1,
+                        name: 'name_1'
+                    }, {
+                        id: 2,
+                        name: 'name_2'
+                    }],
                 }
             },
             watch: {
@@ -36,8 +42,14 @@
 
             },
         })
-
-        console.log(vm._data.name)
+        // vm._data.name = 'wu'
+        // vm._data.pageInfo = {
+        //     size: 50
+        // }
+        vm._data.list.push({
+            id: 3,
+            name: 'name_3'
+        })
     </script>
 </body>
 </html>
