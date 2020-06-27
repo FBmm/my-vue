@@ -55,7 +55,7 @@
 
 #### 声明Vue构造函数，构造函数做的两件事
 
-1. 非生产环境并且不是通过new关键字调用Vue构造函数，则提示警告信息
+###### 1. 非生产环境并且不是通过new关键字调用Vue构造函数，则提示警告信息
 
 疑问：this instanceof Vue 如何判断函数是new关键字调用？
 
@@ -63,7 +63,7 @@
   - 所以，如果此处是普通调用Vue()，则this应该指向的是window对象，所以window对象的构造函数应该是Window，this instanceof Vue // false
   - 如果通过new调用，则this指向Vue实例，所以 this instanceof Vue // true
 
-2. 调用挂载在Vue构造函数上的_init方法
+###### 2. 调用挂载在Vue构造函数上的_init方法
 
 疑问：_init是何时挂载到Vue构造函数上的？
 
