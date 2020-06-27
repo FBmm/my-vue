@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script src="../dist/umd/vue.js"></script>
+    <script>
+        var vm = new Vue({
+            el: "#app",
+            data() {
+                return {
+                    name: 'myVue',
+                    age: 1,
+                    pageInfo: {
+                        page: 15,
+                    },
+                    list: [],
+                }
+            },
+            watch: {
+
+            },
+            computed: {
+
+            },
+            created() {
+
+            },
+            mounted() {
+
+            },
+            methods: {
+
+            },
+        })
+
+        console.log(vm._data.name)
+    </script>
+</body>
+</html>
