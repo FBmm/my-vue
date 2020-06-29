@@ -1,14 +1,17 @@
 
 import { isObject } from '../util/index'
-import { arrayMethod } from './array'
+import { arrayMethods } from './array'
 
+// 观察者对象
 class Observer {
     constructor(value) {
         // 如果vue数据层级太深。需要递归去解析对象的属性，依次增加set和get方法
+        console.log(value)
+        // value.__ob__ = this // 无限递归导致栈溢出
+        def(value, '__ob__', this) // __ob__赋值时定义为不可枚举避免无限递归 指向Observer，调用数组方法拦截器里调用observeArray
         if (Array.isArray(value)) {
-            // console.log(value)
-            // arrayMethod()
-            this.observerArray(value)
+            value.__proto__ = arrayMethods
+            this.observeArray(value)
         } else {
             this.walk(value)
         }
@@ -19,14 +22,14 @@ class Observer {
             defineReactive(data, key, data[key]) // 定义响应式数据
         })
     }
-    observerArray(value) {
+    observeArray(value) {
         value.forEach(item => {
             this.walk(item)
         })
     }
 }
 
-// 定义响应式数据
+// 定义响应式数据 - 响应式核心 每个可观察对象通过getter、setter订阅 当时值改变时发布通知
 function defineReactive(data, key, value) {
     observe(value) // 递归实现深度检测
     Object.defineProperty(data, key, {
@@ -39,6 +42,16 @@ function defineReactive(data, key, value) {
             observe(newValue) // 继续劫持设置的新值 有可能是一个新对象
             value = newValue
         },
+    })
+}
+
+// 定义不可枚举属性
+function def(obj, key, val) {
+    Object.defineProperty(obj, key, {
+        value: val,
+        enumerable: false,
+        writable: true,
+        configurable: true,
     })
 }
 
