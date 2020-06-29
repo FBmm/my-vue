@@ -86,11 +86,21 @@ npm run build # 打包源码
 
 疑问：_init是何时挂载到Vue构造函数上的？
 
-...
+  - 通过调用initMixin(Vue)方法，initMixin的入参是Vue构造函数，方法内部通过Vue.prototype._init挂载_init
 
 疑问：_init方法做了什么事？
 
-...
+  _init方法的入参是Vue初始化的options
+
+  1. vm._uid：_init执行次数
+  2. initLifecycle(vm) 初始化生命周期
+  3. initEvents(vm) 初始化事件
+  4. initRender(vm) 初始化渲染
+  5. 执行 beforeCreate 钩子函数
+  6. initInjections(vm) 在初始化data\props之前解析注入
+  7. initState(vm) 解析注入
+  8. initProvide(vm) 在初始化data\props之后解析服务
+  9. 执行 created 钩子函数
 
 ### 响应式系统
 
