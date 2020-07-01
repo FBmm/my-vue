@@ -116,8 +116,7 @@ npm run build # 打包源码
 
 ### 虚拟DOM
 
-> 虚拟dom节点（VNode）：描述真实dom节点的js对象
-> 虚拟dom（Virtual DOM）：真实dom的虚拟dom节点树
+> 虚拟dom（Virtual DOM）：真实dom的虚拟dom节点，是VNode实例
 
 Vue中的虚拟DOM的作用
   - vue是数据驱动，数据发生变化则需要更新视图
@@ -128,9 +127,140 @@ Vue中的虚拟DOM的作用
   - 既然要更新视图必须进行DOM操作，那么要提升性能，我们必须减少无效的DOM操作
   - 如何提升DOM操作性能？
     - 原理：通过对比数据变化，计算只需要更新的地方，用JS的计算换取DOM操作消耗的性能，尽量减少DOM操作
-    - 实现：通过DOM-Diff算法计算需要更新的虚拟DOM节点（VNode），然后更新视图
+    - 实现：通过DOM-Diff算法计算需要更新的虚拟DOM节点，然后更新视图
 
 > 总结：虚拟DOM的最大作用和用途是通过DOM-Diff算法对比数据变化，减少DOM操作，提升视图更新性能
+
+#### VNode
+
+> VNode：是Vue中描述dom节点的类，包含描述真实DOM节点的一系列属性。
+
+VNode作用
+  - 视图渲染前，把template模板编译成VNode并缓存
+  - 数据发生变化时，与缓存VNode对比，找出有差异VNode对应的真实DOM节点
+  - 然后创建真实DOM节点并插入视图，完成视图更新
+
+##### VNode类源码
+
+```js
+export default class VNode {
+  tag: string | void;
+  data: VNodeData | void;
+  children: ?Array<VNode>;
+  text: string | void;
+  elm: Node | void;
+  ns: string | void;
+  context: Component | void; // rendered in this component's scope
+  key: string | number | void;
+  componentOptions: VNodeComponentOptions | void;
+  componentInstance: Component | void; // component instance
+  parent: VNode | void; // component placeholder node
+
+  // strictly internal
+  raw: boolean; // contains raw HTML? (server only)
+  isStatic: boolean; // hoisted static node
+  isRootInsert: boolean; // necessary for enter transition check
+  isComment: boolean; // empty comment placeholder?
+  isCloned: boolean; // is a cloned node?
+  isOnce: boolean; // is a v-once node?
+  asyncFactory: Function | void; // async component factory function
+  asyncMeta: Object | void;
+  isAsyncPlaceholder: boolean;
+  ssrContext: Object | void;
+  fnContext: Component | void; // real context vm for functional nodes
+  fnOptions: ?ComponentOptions; // for SSR caching
+  devtoolsMeta: ?Object; // used to store functional render context for devtools
+  fnScopeId: ?string; // functional scope id support
+
+  constructor (
+    tag?: string, // 标签名
+    data?: VNodeData,
+    children?: ?Array<VNode>,
+    text?: string,
+    elm?: Node,
+    context?: Component,
+    componentOptions?: VNodeComponentOptions,
+    asyncFactory?: Function
+  ) {
+    this.tag = tag
+    this.data = data
+    this.children = children
+    this.text = text
+    this.elm = elm
+    this.ns = undefined
+    this.context = context
+    this.fnContext = undefined
+    this.fnOptions = undefined
+    this.fnScopeId = undefined
+    this.key = data && data.key
+    this.componentOptions = componentOptions
+    this.componentInstance = undefined
+    this.parent = undefined
+    this.raw = false
+    this.isStatic = false
+    this.isRootInsert = true
+    this.isComment = false
+    this.isCloned = false
+    this.isOnce = false
+    this.asyncFactory = asyncFactory
+    this.asyncMeta = undefined
+    this.isAsyncPlaceholder = false
+  }
+
+  // DEPRECATED: alias for componentInstance for backwards compat.
+  /* istanbul ignore next */
+  get child (): Component | void {
+    return this.componentInstance
+  }
+}
+```
+
+##### VNode类型
+
+- 注释节点
+- 文本节点
+- 元素节点
+- 组件节点
+- 函数式组件节点
+- 克隆节点
+
+创建注释节点
+
+  - text：注释信息
+  - isComment：注释节点标志
+
+```js
+// 创建注释节点
+export const createCommentNode = (text: string = '') => {
+  const node = new VNode()
+  ndoe.text = text
+  node.isComment = true
+  return node 
+}
+```
+
+创建文本节点
+
+  - 标签名、VNodeData、孩子节点都为undefined
+  - 文本内容text有值
+
+```js
+// 创建注释节点
+export const createTextVNode(val: string | number) {
+  return new VNode(undefined, undefined, undefined, val)
+}
+```
+
+##### DOM-Diff算法
+
+> 新VNode与缓存VNode找出差异的过程，这个过程称为patch，指对旧VNode的修补。
+
+patch
+  - 对比：以新VNode为基准，对比旧VNode
+  - 创建节点：新VNode有的节点，旧VNode没有，则在旧VNode创建节点
+  - 删除节点：新VNode没有的节点，旧VNode有，则在旧VNode删除节点
+  - 更新节点：新VNode有的节点，旧VNode也有，则以新VNode为准，更新旧VNode
+  - 总之：patch的过程就是以新VNode为准，把新VNode同步到旧VNode，最后让新旧VNode保持一致的过程
 
 ### 模板编译
 
