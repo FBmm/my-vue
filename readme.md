@@ -144,25 +144,25 @@ VNode作用
 
 ```js
 export default class VNode {
-  tag: string | void;
-  data: VNodeData | void;
-  children: ?Array<VNode>;
-  text: string | void;
-  elm: Node | void;
-  ns: string | void;
+  tag: string | void; // 标签名
+  data: VNodeData | void; // 标签属性
+  children: ?Array<VNode>; // 子节点
+  text: string | void; // 当前节点的文本
+  elm: Node | void; // 当前VNode对应的真实dom节点
+  ns: string | void; // 命名空间
   context: Component | void; // rendered in this component's scope
-  key: string | number | void;
-  componentOptions: VNodeComponentOptions | void;
-  componentInstance: Component | void; // component instance
-  parent: VNode | void; // component placeholder node
+  key: string | number | void; // 节点的key 值是data.key 也就是Vue模板声明的key
+  componentOptions: VNodeComponentOptions | void; // 组件options
+  componentInstance: Component | void; // component instance -  当前节点对应组件的实例
+  parent: VNode | void; // component placeholder node - 父节点
 
   // strictly internal
   raw: boolean; // contains raw HTML? (server only)
   isStatic: boolean; // hoisted static node
   isRootInsert: boolean; // necessary for enter transition check
-  isComment: boolean; // empty comment placeholder?
-  isCloned: boolean; // is a cloned node?
-  isOnce: boolean; // is a v-once node?
+  isComment: boolean; // empty comment placeholder? - 是否是注释节点
+  isCloned: boolean; // is a cloned node? - 是否是克隆节点
+  isOnce: boolean; // is a v-once node? - 是否有v-once指令
   asyncFactory: Function | void; // async component factory function
   asyncMeta: Object | void;
   isAsyncPlaceholder: boolean;
@@ -173,7 +173,7 @@ export default class VNode {
   fnScopeId: ?string; // functional scope id support
 
   constructor (
-    tag?: string, // 标签名
+    tag?: string,
     data?: VNodeData,
     children?: ?Array<VNode>,
     text?: string,
@@ -182,7 +182,7 @@ export default class VNode {
     componentOptions?: VNodeComponentOptions,
     asyncFactory?: Function
   ) {
-    this.tag = tag
+    this.tag = tag 
     this.data = data
     this.children = children
     this.text = text
@@ -224,10 +224,10 @@ export default class VNode {
 - 函数式组件节点
 - 克隆节点
 
-创建注释节点
+注释节点
 
-  - text：注释信息
-  - isComment：注释节点标志
+  - text属性：注释信息
+  - isComment属性：注释节点标志
 
 ```js
 // 创建注释节点
@@ -239,7 +239,7 @@ export const createCommentNode = (text: string = '') => {
 }
 ```
 
-创建文本节点
+文本节点
 
   - 标签名、VNodeData、孩子节点都为undefined
   - 文本内容text有值
@@ -251,16 +251,116 @@ export const createTextVNode(val: string | number) {
 }
 ```
 
+元素节点
+
+  - tag属性：描述节点标签
+  - data属性：描述节点属性如class、attributes
+  - children属性：描述子节点信息
+
 ##### DOM-Diff算法
 
 > 新VNode与缓存VNode找出差异的过程，这个过程称为patch，指对旧VNode的修补。
 
 patch
-  - 对比：以新VNode为基准，对比旧VNode
-  - 创建节点：新VNode有的节点，旧VNode没有，则在旧VNode创建节点
-  - 删除节点：新VNode没有的节点，旧VNode有，则在旧VNode删除节点
-  - 更新节点：新VNode有的节点，旧VNode也有，则以新VNode为准，更新旧VNode
-  - 总之：patch的过程就是以新VNode为准，把新VNode同步到旧VNode，最后让新旧VNode保持一致的过程
+
+  - 对比：以新VNode为基准，对比旧OldVNode
+  - 创建节点：新VNode有的节点，旧OldVNode没有，则在旧OldVNode创建节点
+  - 删除节点：新VNode没有的节点，旧OldVNode有，则在旧OldVNode删除节点
+  - 更新节点：新VNode有的节点，旧OldVNode也有，则以新VNode为准，更新旧OldVNode
+  - 总之：patch的过程就是以新VNode为准，把新VNode同步到旧OldVNode，最后让新旧OldVNode保持一致的过程
+
+创建节点
+
+只有注释节点、文本节点、元素节点能被创建并插入到DOM中
+
+```js
+function createElm (
+  vnode,
+  insertedVnodeQueue,
+  parentElm,
+  refElm,
+  nested,
+  ownerArray,
+  index
+) {
+  if (isDef(vnode.elm) && isDef(ownerArray)) {
+    // This vnode was used in a previous render!
+    // now it's used as a new node, overwriting its elm would cause
+    // potential patch errors down the road when it's used as an insertion
+    // reference node. Instead, we clone the node on-demand before creating
+    // associated DOM element for it.
+    vnode = ownerArray[index] = cloneVNode(vnode)
+  }
+
+  vnode.isRootInsert = !nested // for transition enter check
+  if (createComponent(vnode, insertedVnodeQueue, parentElm, refElm)) {
+    return
+  }
+
+  const data = vnode.data
+  const children = vnode.children
+  const tag = vnode.tag
+  if (isDef(tag)) {
+    if (process.env.NODE_ENV !== 'production') {
+      if (data && data.pre) {
+        creatingElmInVPre++
+      }
+      if (isUnknownElement(vnode, creatingElmInVPre)) {
+        warn(
+          'Unknown custom element: <' + tag + '> - did you ' +
+          'register the component correctly? For recursive components, ' +
+          'make sure to provide the "name" option.',
+          vnode.context
+        )
+      }
+    }
+
+    vnode.elm = vnode.ns
+      ? nodeOps.createElementNS(vnode.ns, tag)
+      : nodeOps.createElement(tag, vnode)
+    setScope(vnode)
+
+    /* istanbul ignore if */
+    if (__WEEX__) {
+      // in Weex, the default insertion order is parent-first.
+      // List items can be optimized to use children-first insertion
+      // with append="tree".
+      const appendAsTree = isDef(data) && isTrue(data.appendAsTree)
+      if (!appendAsTree) {
+        if (isDef(data)) {
+          invokeCreateHooks(vnode, insertedVnodeQueue)
+        }
+        insert(parentElm, vnode.elm, refElm)
+      }
+      createChildren(vnode, children, insertedVnodeQueue)
+      if (appendAsTree) {
+        if (isDef(data)) {
+          invokeCreateHooks(vnode, insertedVnodeQueue)
+        }
+        insert(parentElm, vnode.elm, refElm)
+      }
+    } else {
+      createChildren(vnode, children, insertedVnodeQueue)
+      if (isDef(data)) {
+        invokeCreateHooks(vnode, insertedVnodeQueue)
+      }
+      insert(parentElm, vnode.elm, refElm)
+    }
+
+    if (process.env.NODE_ENV !== 'production' && data && data.pre) {
+      creatingElmInVPre--
+    }
+  } else if (isTrue(vnode.isComment)) {
+    vnode.elm = nodeOps.createComment(vnode.text)
+    insert(parentElm, vnode.elm, refElm)
+  } else {
+    vnode.elm = nodeOps.createTextNode(vnode.text)
+    insert(parentElm, vnode.elm, refElm)
+  }
+}
+```
+
+- 判断是否是元素节点只需要判断VNode是否有tag属性
 
 ### 模板编译
 
