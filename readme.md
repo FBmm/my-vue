@@ -360,7 +360,10 @@ function createElm (
 }
 ```
 
-- 判断是否是元素节点只需要判断VNode是否有tag属性
+- VNode有tag属性判断是元素节点，如果是元素节点调用createElement方法，然后递归遍历创建所有子节点，创建好子节点后调用 insert 方法插入到当前元素节点，最后把元素节点插入到DOM中。
+  - insert方法：
+- 判断是元素节点 - 只需要判断VNode是否有tag属性
+- 判断是元素节点 - 只需要判断VNode是否有tag属性
 
 ### 模板编译
 
