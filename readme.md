@@ -362,8 +362,10 @@ function createElm (
 
 - VNode有tag属性判断是元素节点，如果是元素节点调用createElement方法，然后递归遍历创建所有子节点，创建好子节点后调用 insert 方法插入到当前元素节点，最后把元素节点插入到DOM中。
   - insert方法：
-- 判断是元素节点 - 只需要判断VNode是否有tag属性
-- 判断是元素节点 - 只需要判断VNode是否有tag属性
+- Vnode isComment属性为true 判断是注释节点，如果是注释节点，调用createComment方法创建注释节点，再插入DOM
+- 如果VNode不是元素节点也不是注释节点，那么认为是文本节点，调用createTextNode方法创建文本节点，再插入DOM
+
+> nodeOps：跨平台兼容，封装节点操作
 
 ### 模板编译
 
