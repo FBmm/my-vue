@@ -367,6 +367,95 @@ function createElm (
 
 > nodeOps：跨平台兼容，封装节点操作
 
+更新节点
+
+```js
+  function patchVnode (
+    oldVnode,
+    vnode,
+    insertedVnodeQueue,
+    ownerArray,
+    index,
+    removeOnly
+  ) {
+    if (oldVnode === vnode) {
+      return
+    }
+
+    if (isDef(vnode.elm) && isDef(ownerArray)) {
+      // clone reused vnode
+      vnode = ownerArray[index] = cloneVNode(vnode)
+    }
+
+    const elm = vnode.elm = oldVnode.elm
+
+    if (isTrue(oldVnode.isAsyncPlaceholder)) {
+      if (isDef(vnode.asyncFactory.resolved)) {
+        hydrate(oldVnode.elm, vnode, insertedVnodeQueue)
+      } else {
+        vnode.isAsyncPlaceholder = true
+      }
+      return
+    }
+
+    // reuse element for static trees.
+    // note we only do this if the vnode is cloned -
+    // if the new node is not cloned it means the render functions have been
+    // reset by the hot-reload-api and we need to do a proper re-render.
+
+    // 克隆节点或者是有v-once指令的静态节点  并且key没有改变 则不更新
+    if (isTrue(vnode.isStatic) &&
+      isTrue(oldVnode.isStatic) &&
+      vnode.key === oldVnode.key &&
+      (isTrue(vnode.isCloned) || isTrue(vnode.isOnce))
+    ) {
+      vnode.componentInstance = oldVnode.componentInstance
+      return
+    }
+
+    let i
+    const data = vnode.data
+    if (isDef(data) && isDef(i = data.hook) && isDef(i = i.prepatch)) {
+      i(oldVnode, vnode)
+    }
+
+    // 旧VNode子节点
+    const oldCh = oldVnode.children
+    // 新VNode子节点
+    const ch = vnode.children
+    if (isDef(data) && isPatchable(vnode)) {
+      for (i = 0; i < cbs.update.length; ++i) cbs.update[i](oldVnode, vnode)
+      if (isDef(i = data.hook) && isDef(i = i.update)) i(oldVnode, vnode)
+    }
+    // 新VNode不是文本节点
+    if (isUndef(vnode.text)) {
+      // 新旧VNode都有子节点
+      if (isDef(oldCh) && isDef(ch)) {
+        // 新VNode不是旧VNode 更新旧VNode子节点
+        if (oldCh !== ch) updateChildren(elm, oldCh, ch, insertedVnodeQueue, removeOnly)
+      } else if (isDef(ch)) { // 只有新VNode有子节点 并且旧Vnode没有子节点
+        if (process.env.NODE_ENV !== 'production') {
+          checkDuplicateKeys(ch)
+        }
+        // 旧VNode是文本节点 并且有内容
+        if (isDef(oldVnode.text)) nodeOps.setTextContent(elm, '') // 清空真实dom元素的内容
+        // 把新vnode子节点新增到真实dom中
+        addVnodes(elm, null, ch, 0, ch.length - 1, insertedVnodeQueue)
+      } else if (isDef(oldCh)) { // 旧Vnode有子节点 新Vnode没有子节点
+        removeVnodes(elm, oldCh, 0, oldCh.length - 1)
+      } else if (isDef(oldVnode.text)) { // 新旧VNode都没有子节点 旧VNode是文本节点
+        nodeOps.setTextContent(elm, '')
+      }
+    } else if (oldVnode.text !== vnode.text) { // 新VNode是文本节点 并且与旧vnode文本内容不同
+      nodeOps.setTextContent(elm, vnode.text) // 替换真实dom文本内容
+    }
+    // 新VNode有元素属性
+    if (isDef(data)) {
+      if (isDef(i = data.hook) && isDef(i = i.postpatch)) i(oldVnode, vnode)
+    }
+  }
+```
+
 ### 模板编译
 
 ...
