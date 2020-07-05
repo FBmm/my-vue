@@ -455,6 +455,22 @@ function createElm (
     }
   }
 ```
+由上面代码知道，更新节点的核心步骤为：
+- 如果VNode与oldVNode是否相同，则中断执行
+- 如果VNode与oldVNode是静态克隆节点或者有v-once指令，并且key没有改变，则中断执行
+- 如果VNode不是文本节点
+  - 如果VNode与oldVNode都有子节点并且不相同，更新子节点 ```updateChildren(elm, oldCh, ch, insertedVnodeQueue, removeOnly)```
+  - 如果只有VNode有子节点，oldVNode没有子节点
+    - 如果oldVNode是文本节点并且有内容，清空真实dom的内容  ```nodeOps.setTextContent(elm, '')```
+    - 添加VNode的子节点到真实dom ```addVnodes(elm, null, ch, 0, ch.length - 1, insertedVnodeQueue)```
+  - 如果只有oldVNode有子节点，VNode没有子节点
+    - 删除dom中的子节点 ```removeVnodes(elm, oldCh, 0, oldCh.length - 1)```
+  - 如果VNode和oldVNode都没有子节点，但是oldVNode文本节点有内容
+    - 清空真实dom的文本节点内容 ```nodeOps.setTextContent(elm, '')```
+- 如果VNode是文本节点
+  - 并且与oldVNode text属性不同，用VNode的text替换真实dom的text ```nodeOps.setTextContent(elm, vnode.text)```
+
+> 总结：上面过程有一个增加节点操作，一个删除节点操作，一个更新节点操作，一个替换文本操作，两个清空文本操作
 
 ### 模板编译
 
